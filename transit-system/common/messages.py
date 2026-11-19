@@ -36,6 +36,7 @@ class VehicleLocation(Message):
     nextStopId: str
     occupancy: int
     capacity: int
+    direction: int = 1
     timestamp: int = field(default_factory=now_ms)
 
 @dataclass

@@ -1,5 +1,6 @@
 import math
 import random
+import os
 
 from common.bus import MessageBus
 from common.messages import VehicleLocation, VEHICLE_LOCATION
@@ -15,7 +16,14 @@ vehicles = [
     {"vehicleId": "BUS-1", "routeId": "R1", "stopIndex": 0, "direction": 1,  "progress": 0.0, "speedKmh": 30.0, "occupancy": 12},
     {"vehicleId": "BUS-2", "routeId": "R1", "stopIndex": 3, "direction": -1, "progress": 0.0, "speedKmh": 25.0, "occupancy": 35},
     {"vehicleId": "BUS-3", "routeId": "R2", "stopIndex": 0, "direction": 1,  "progress": 0.0, "speedKmh": 20.0, "occupancy": 50},
+    {"vehicleId": "BUS-4", "routeId": "R3", "stopIndex": 0, "direction": 1,  "progress": 0.0, "speedKmh": 35.0, "occupancy": 20},
 ]
+# Each copy of this service gets its own bus names and starting points,
+# so running 2+ copies gives more buses instead of duplicates.
+PREFIX = os.getenv("HOSTNAME", "L1")[:4]      # Docker gives each container a different hostname
+for vehicle in vehicles:
+    vehicle["vehicleId"] = f"{PREFIX}-{vehicle['vehicleId']}"   # e.g. "a3f2-BUS-1"
+    vehicle["progress"] = random.uniform(0, 0.9)                # start somewhere along the route
 
 
 def distance_km(a, b):
@@ -71,6 +79,7 @@ def update_locations(bus):
             nextStopId=nxt[0],
             occupancy=vehicle["occupancy"],
             capacity=VEHICLE_CAPACITY,
+            direction=vehicle["direction"],
         )
 
         # Publish the message to RabbitMQ
