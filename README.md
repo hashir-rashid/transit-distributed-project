@@ -113,7 +113,12 @@ Before running the project, make sure you have:
 
 Download or clone the project and open the `transit-system` folder in PyCharm.
 
-Make sure the terminal is opened in the folder containing `docker-compose.yml`.
+```bash
+git clone https://github.com/hashir-rashid/transit-distributed-project.git@latest
+cd transit-system
+```
+
+Make sure the folder contains the `docker-compose.yml` file.
 
 ### Step 3: Start the Services
 
@@ -229,7 +234,7 @@ You can also open the RabbitMQ management dashboard at:
 
 http://localhost:15672
 
-Use the RabbitMQ login credentials configured for the project.
+Use the RabbitMQ login credentials configured for the project (found in the .env file).
 
 ### Additional Commands
 
@@ -312,5 +317,6 @@ Overall, we were able to build a working distributed transit simulation where mu
 Our system can simulate moving buses, track passenger demand, adjust schedules, and display transit information through a web interface.
 
 The scheduling comparison also demonstrated how dynamic scheduling can improve expected passenger waiting times during busy periods while reducing the number of buses needed during quieter hours.
+
 
 This project helped us better understand distributed systems, message-based communication, Docker containers, and how different services can work together in a real-world application.
