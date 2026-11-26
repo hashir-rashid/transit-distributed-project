@@ -3,7 +3,6 @@ import csv
 import sys
 from pathlib import Path
 
-# Allow imports from the main project folder
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from common.routes import ROUTES
@@ -12,7 +11,6 @@ from scheduling_service.scheduling import (
     round_trip_minutes,
 )
 
-# Fixed scheduling always uses a 10-minute headway
 FIXED_HEADWAY = 10
 
 results = []
@@ -24,7 +22,6 @@ for route_id in ROUTES:
         fixed_headway = FIXED_HEADWAY
         dynamic_headway = HEADWAY_BY_DEMAND[demand]
 
-        # Use the same bus calculation as scheduling.py
         import math
 
         fixed_buses = math.ceil(trip_time / fixed_headway)

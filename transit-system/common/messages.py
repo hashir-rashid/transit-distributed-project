@@ -2,27 +2,22 @@ import json
 import time
 from dataclasses import asdict, dataclass, field
 
-# Routing keys: the "address" each message type is sent to in RabbitMQ
 VEHICLE_LOCATION = "vehicle.location"
 DEMAND_UPDATE = "demand.update"
 SCHEDULE_UPDATE = "schedule.update"
 
 
 def now_ms():
-    """Current time in milliseconds. Used later to measure latency."""
     return int(time.time() * 1000)
 
 
 class Message:
-    """Every message type inherits these two methods."""
 
     def to_json(self):
-        # object -> JSON text (to send)
         return json.dumps(asdict(self))
 
     @classmethod
     def from_json(cls, raw):
-        # JSON text (received) -> object
         return cls(**json.loads(raw))
 
 

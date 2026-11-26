@@ -17,17 +17,16 @@ HOURLY_DEMAND = [
     0.4,  0.4,  0.25, 0.2,  0.1,         # 19:00 - 23:59  evening / night
 ]
 
-# Passengers per 15 minutes on each route at rush hour (some routes are busier)
+# Passengers per 15 minutes on each route at rush hour
 ROUTE_PEAK_PASSENGERS = {"R1": 120, "R2": 150, "R3": 80}
 
 
 def simulate_taps(minute_of_day):
-    """Simulated fare card taps for one 15-minute window: one record per passenger."""
     hour = minute_of_day // 60
     taps = []
     for route_id, route in ROUTES.items():
         expected = ROUTE_PEAK_PASSENGERS[route_id] * HOURLY_DEMAND[hour]
-        count = max(0, round(random.gauss(expected, expected * 0.1)))   # +/- 10% randomness
+        count = max(0, round(random.gauss(expected, expected * 0.1)))
         for _ in range(count):
             stop = random.choice(route["stops"])
             taps.append({"routeId": route_id, "stopId": stop[0]})
@@ -35,7 +34,7 @@ def simulate_taps(minute_of_day):
 
 
 def analyze(taps):
-    """Count how many passengers boarded each route."""
+
     counts = {route_id: 0 for route_id in ROUTES}
     for tap in taps:
         counts[tap["routeId"]] += 1
@@ -43,7 +42,6 @@ def analyze(taps):
 
 
 def classify(route_id, count):
-    """Compare the count with that route's normal rush-hour level."""
     ratio = count / ROUTE_PEAK_PASSENGERS[route_id]
     if ratio >= 0.8:
         return "PEAK"
@@ -53,7 +51,6 @@ def classify(route_id, count):
 
 
 def time_label(minute):
-    """Turn minutes since midnight into "HH:MM"."""
     return f"{(minute // 60) % 24:02d}:{minute % 60:02d}"
 
 

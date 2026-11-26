@@ -5,19 +5,18 @@ import sys
 import time
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))   # so "common" can be imported
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from common.bus import MessageBus
 
 DURATION_SECONDS = int(sys.argv[1]) if len(sys.argv) > 1 else 60   # how long to measure
 OUTPUT_FILE = Path(__file__).parent / "latency_results.csv"
 
-latencies = {}   # message type -> list of latencies in ms, e.g. {"vehicle.location": [2.1, 3.4, ...]}
-rows = []        # every single measurement, saved to the CSV file
+latencies = {}
+rows = []
 
 
 def record(routing_key, body, received_ms):
-    """Latency = time it arrived - time it was created (the message's timestamp)."""
     data = json.loads(body)
     latency_ms = received_ms - data["timestamp"]
     latencies.setdefault(routing_key, []).append(latency_ms)
@@ -25,7 +24,6 @@ def record(routing_key, body, received_ms):
 
 
 def summary(values, seconds):
-    """Average, median, 95th percentile and max latency, plus messages per second."""
     ordered = sorted(values)
     p95 = ordered[min(len(ordered) - 1, int(len(ordered) * 0.95))]
     return {
@@ -60,9 +58,9 @@ if __name__ == "__main__":
     def on_message(routing_key, body):
         record(routing_key, body, time.time() * 1000)
         if time.time() - start >= DURATION_SECONDS:
-            bus.channel.stop_consuming()      # time's up: stop listening
+            bus.channel.stop_consuming()
 
-    bus.subscribe(["#"], on_message)          # "#" = every message type
+    bus.subscribe(["#"], on_message)
     elapsed = time.time() - start
 
     if not rows:

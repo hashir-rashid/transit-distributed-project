@@ -6,28 +6,24 @@ from common.bus import MessageBus
 from common.messages import VehicleLocation, VEHICLE_LOCATION
 from common.routes import ROUTES, VEHICLE_CAPACITY
 
-UPDATE_SECONDS = 3    # how often we publish
+UPDATE_SECONDS = 3
 SPEEDUP = 10          # 1 real second = 10 simulated seconds, so buses visibly move
 
-# Simulated transit vehicles
-# stopIndex = stop the bus just left, direction = 1 forward / -1 backward,
-# progress = how far to the next stop (0.0 to 1.0)
+
 vehicles = [
     {"vehicleId": "BUS-1", "routeId": "R1", "stopIndex": 0, "direction": 1,  "progress": 0.0, "speedKmh": 30.0, "occupancy": 12},
     {"vehicleId": "BUS-2", "routeId": "R1", "stopIndex": 3, "direction": -1, "progress": 0.0, "speedKmh": 25.0, "occupancy": 35},
     {"vehicleId": "BUS-3", "routeId": "R2", "stopIndex": 0, "direction": 1,  "progress": 0.0, "speedKmh": 20.0, "occupancy": 50},
     {"vehicleId": "BUS-4", "routeId": "R3", "stopIndex": 0, "direction": 1,  "progress": 0.0, "speedKmh": 35.0, "occupancy": 20},
 ]
-# Each copy of this service gets its own bus names and starting points,
-# so running 2+ copies gives more buses instead of duplicates.
-PREFIX = os.getenv("HOSTNAME", "L1")[:4]      # Docker gives each container a different hostname
+
+PREFIX = os.getenv("HOSTNAME", "L1")[:4]
 for vehicle in vehicles:
-    vehicle["vehicleId"] = f"{PREFIX}-{vehicle['vehicleId']}"   # e.g. "a3f2-BUS-1"
-    vehicle["progress"] = random.uniform(0, 0.9)                # start somewhere along the route
+    vehicle["vehicleId"] = f"{PREFIX}-{vehicle['vehicleId']}"
+    vehicle["progress"] = random.uniform(0, 0.9)
 
 
 def distance_km(a, b):
-    """Approximate distance between two stops."""
     dlat = (b[2] - a[2]) * 111
     dlon = (b[3] - a[3]) * 111 * math.cos(math.radians(a[2]))
     return math.hypot(dlat, dlon)
@@ -43,18 +39,15 @@ def arrive_at_stop(vehicle):
     vehicle["stopIndex"] += vehicle["direction"]
     vehicle["progress"] = 0.0
 
-    # End of the line? Turn around.
     nxt = vehicle["stopIndex"] + vehicle["direction"]
     if nxt < 0 or nxt >= len(stops):
         vehicle["direction"] *= -1
 
-    # Simulate passenger occupancy and vehicle speed changing at each stop
     vehicle["occupancy"] = max(0, min(VEHICLE_CAPACITY, vehicle["occupancy"] + random.randint(-8, 10)))
     vehicle["speedKmh"] = round(random.uniform(20, 45), 1)
 
 
 def move(vehicle, seconds):
-    # Simulate GPS movement along the route, based on speed
     current, nxt = current_and_next_stop(vehicle)
     km_travelled = vehicle["speedKmh"] * seconds / 3600
     vehicle["progress"] += km_travelled / distance_km(current, nxt)
@@ -69,7 +62,6 @@ def update_locations(bus):
         current, nxt = current_and_next_stop(vehicle)
         p = vehicle["progress"]
 
-        # Create a VehicleLocation message
         message = VehicleLocation(
             vehicleId=vehicle["vehicleId"],
             routeId=vehicle["routeId"],

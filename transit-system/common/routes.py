@@ -1,5 +1,5 @@
 # Simulated bus routes, shared by every service.
-# Each stop: (stopId, name, latitude, longitude)
+
 
 ROUTES = {
     "R1": {

@@ -4,7 +4,7 @@ import threading
 from pathlib import Path
 
 HERE = Path(__file__).parent
-sys.path.insert(0, str(HERE.parent))   # lets us import "common" from the project root
+sys.path.insert(0, str(HERE.parent))
 
 import uvicorn
 from fastapi import FastAPI
@@ -17,8 +17,8 @@ from eta import calculate_etas
 
 app = FastAPI()
 
-vehicles = {}    # latest location of each bus, e.g. {"BUS-1": {...}}
-schedules = {}   # latest schedule of each route, e.g. {"R1": {...}}
+vehicles = {}
+schedules = {}
 
 
 def listen_to_rabbitmq():

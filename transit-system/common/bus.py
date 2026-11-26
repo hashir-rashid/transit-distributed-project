@@ -5,13 +5,11 @@ from pathlib import Path
 
 import pika
 
-EXCHANGE = "transit"          # the name of our "post office" in RabbitMQ
+EXCHANGE = "transit"
 log = logging.getLogger("bus")
 
 
 def load_env_file():
-    """Read KEY=VALUE lines from the .env file in the project root, if it exists.
-    (In Docker, the values come from docker-compose instead.)"""
     env_path = Path(__file__).resolve().parent.parent / ".env"
     if env_path.exists():
         for line in env_path.read_text().splitlines():
@@ -26,27 +24,22 @@ load_env_file()
 
 class MessageBus:
     def __init__(self):
-        # In Docker the host is "rabbitmq"; on your laptop it's "localhost"
         host = os.getenv("RABBITMQ_HOST", "localhost")
-        # Log in with the username and password instead of the default guest account
         user = os.getenv("RABBITMQ_USER", "guest")
         password = os.getenv("RABBITMQ_PASSWORD", "guest")
         credentials = pika.PlainCredentials(user, password)
 
         self.connection = self._connect(host, credentials)
         self.channel = self.connection.channel()
-        # "topic" exchange = route messages by their address, e.g. "vehicle.location"
         self.channel.exchange_declare(exchange=EXCHANGE, exchange_type="topic", durable=True)
 
     def _connect(self, host, credentials):
-        # Keep retrying: RabbitMQ can take a few seconds to start
         params = pika.ConnectionParameters(host=host, credentials=credentials)
         for attempt in range(30):
             try:
                 return pika.BlockingConnection(params)
             except (pika.exceptions.ProbableAuthenticationError,
                     pika.exceptions.AuthenticationError):
-                # Wrong username/password: retrying won't help, so stop with a clear message
                 raise RuntimeError("RabbitMQ rejected the login: check RABBITMQ_USER and "
                                    "RABBITMQ_PASSWORD in your .env file")
             except pika.exceptions.AMQPConnectionError:
@@ -55,7 +48,6 @@ class MessageBus:
         raise RuntimeError("Could not connect to RabbitMQ")
 
     def publish(self, routing_key, message):
-        """Send a message (any class from common.messages) to an address."""
         self.channel.basic_publish(
             exchange=EXCHANGE,
             routing_key=routing_key,
@@ -63,9 +55,7 @@ class MessageBus:
         )
 
     def subscribe(self, routing_keys, callback):
-        """Listen for messages on the given addresses. Runs forever.
-        callback(routing_key, body) is called for each message.
-        Use ["#"] to receive every message."""
+
         queue = self.channel.queue_declare(queue="", exclusive=True).method.queue
         for key in routing_keys:
             self.channel.queue_bind(exchange=EXCHANGE, queue=queue, routing_key=key)
@@ -81,5 +71,4 @@ class MessageBus:
             self.connection.close()
 
     def sleep(self, seconds):
-        """Use this instead of time.sleep() so the connection stays alive."""
         self.connection.sleep(seconds)

@@ -4,16 +4,14 @@ from common.bus import MessageBus
 from common.messages import DemandUpdate, ScheduleUpdate, DEMAND_UPDATE, SCHEDULE_UPDATE
 from common.routes import ROUTES
 
-AVERAGE_SPEED_KMH = 32    # average bus speed, including stops
+AVERAGE_SPEED_KMH = 32
 
-# How often a bus comes (minutes between buses) for each demand level
 HEADWAY_BY_DEMAND = {"PEAK": 5, "NORMAL": 10, "OFF_PEAK": 20}
 
-current_schedules = {}    # latest schedule for each route (kept if the demand service goes down)
+current_schedules = {}
 
 
 def distance_km(a, b):
-    """Approximate distance between two stops."""
     dlat = (b[2] - a[2]) * 111
     dlon = (b[3] - a[3]) * 111 * math.cos(math.radians(a[2]))
     return math.hypot(dlat, dlon)
@@ -27,7 +25,6 @@ def round_trip_minutes(route_id):
 
 
 def make_schedule(demand):
-    """Decide bus frequency and number of buses for a route, based on its demand."""
     headway = HEADWAY_BY_DEMAND[demand.demandLevel]
     vehicles = math.ceil(round_trip_minutes(demand.routeId) / headway)
     return ScheduleUpdate(
